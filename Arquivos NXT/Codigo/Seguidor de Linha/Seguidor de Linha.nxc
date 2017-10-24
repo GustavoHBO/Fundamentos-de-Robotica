@@ -1,0 +1,145 @@
+#define MOVE_TIME   100
+#define TURN_TIME   250
+#define VL 50
+#define RODAR 100
+
+int valorMaximoFaixaAlta, valorMaximoFaixaBaixa, valorMedioFaixaAlta, valorMedioFaixaBaixa, valorMinimoFaixaAlta, valorMinimoFaixaBaixa;
+int repeatCalibrar = 2000, errorCalibrar = 20;
+int bussula = 0;
+
+// A subrotina serve para calibrar as faixas de cores nas três fitas existentes
+sub calibrar(){
+     //O código abaixo serve para calibrar a quantidade de luz refletida na fita PRETA.
+     until(SENSOR_1 == 1);
+     valorMaximoFaixaAlta = Sensor(IN_3);
+     valorMaximoFaixaBaixa = Sensor(IN_3);
+     int valorSensor;
+     repeat(repeatCalibrar){
+        valorSensor = Sensor(IN_3);
+        OnFwd(OUT_BC,VL);
+        NumOut(0, LCD_LINE1, valorSensor);
+        if(valorMaximoFaixaAlta < valorSensor){
+          valorMaximoFaixaAlta = valorSensor;
+        }
+        else if (valorMaximoFaixaBaixa > valorSensor) {
+          valorMaximoFaixaBaixa = valorSensor;
+        }
+     }
+     
+     //O código abaixo serve para calibrar a quantidade de luz refletida na fita CINZA.
+     Off(OUT_BC);
+     until(SENSOR_1 == 1);
+     valorMedioFaixaAlta = Sensor(IN_3);
+     valorMedioFaixaBaixa = Sensor(IN_3);
+     repeat(repeatCalibrar){
+        valorSensor = Sensor(IN_3);
+        OnFwd(OUT_BC,VL);
+        NumOut(0, LCD_LINE1, valorSensor);
+        if(valorMedioFaixaAlta < valorSensor){
+          valorMedioFaixaAlta = valorSensor;
+        }
+        else if (valorMedioFaixaBaixa > valorSensor) {
+          valorMedioFaixaBaixa = valorSensor;
+        }
+     }
+     
+     //O código abaixo serve para calibrar a quantidade de luz refletida na fita BRANCA.
+     Off(OUT_BC);
+     until(SENSOR_1 == 1);
+     valorMinimoFaixaAlta = Sensor(IN_3);
+     valorMinimoFaixaBaixa = Sensor(IN_3);
+     repeat(repeatCalibrar){
+        valorSensor = Sensor(IN_3);
+        OnFwd(OUT_BC,VL);
+        NumOut(0, LCD_LINE1, valorSensor);
+        if(valorMinimoFaixaAlta < valorSensor){
+          valorMinimoFaixaAlta = valorSensor;
+        }
+        else if (valorMinimoFaixaBaixa > valorSensor) {
+          valorMinimoFaixaBaixa = valorSensor;
+        }
+     }
+
+}
+
+sub seguirBordaEsquerda(){
+    int valorSensor;
+    int testeRotacao = 0;
+    int vel = VL;
+    while(true){
+       NumOut(0, LCD_LINE2, bussula);
+       Wait(100);
+       valorSensor = Sensor(IN_3);
+       if(valorSensor > valorMaximoFaixaAlta + errorCalibrar){
+          if(testeRotacao == 15){
+             vel *=-1;
+             testeRotacao = -20;
+             Wait(500);
+             PlaySound("START");
+          }
+          testeRotacao++;
+          OnFwd(OUT_C,vel/2);
+          OnFwd(OUT_B,-vel/2);
+       } else {
+          if(vel < 0){
+             vel *= -1;
+          }
+          testeRotacao = 0;
+          OnFwd(OUT_BC,vel);
+       }
+    }
+}
+sub seguirBordaDireita(){
+    int valorSensor;
+    int testeRotacao = 0;
+    int vel = VL;
+    while(true){
+       Wait(100);
+       OnFwd(OUT_BC,vel);
+       valorSensor = Sensor(IN_3);
+       if(valorSensor > valorMaximoFaixaAlta + errorCalibrar){
+          if(testeRotacao == 10){
+             vel = 100;
+             testeRotacao = 0;
+          }
+          testeRotacao++;
+          Off(OUT_C);
+          OnFwd(OUT_B,vel);
+       }
+    }
+}
+
+sub rodar(int rodar){
+   OnRev(OUT_C, rodar);
+   OnFwd(OUT_B, rodar);
+   Wait(TURN_TIME);
+   Off(OUT_BC);
+}
+
+sub seguirLinhaMeio(){
+   RotateMotorEx(OUT_BC, 50, 360, 90, true, true);
+}
+
+task main()
+{
+     SetSensorLight(IN_3);
+     SetSensorTouch(IN_1);
+     //calibrar();  // Calibrar as faixas de cores das três fitas do circuito.
+     //NumOut(0, LCD_LINE2, valorMaximoFaixaAlta);
+     //NumOut(0, LCD_LINE3, valorMaximoFaixaBaixa);
+     //NumOut(0, LCD_LINE4, valorMinimoFaixaAlta);
+     //NumOut(0, LCD_LINE5, valorMinimoFaixaBaixa);
+     //NumOut(0, LCD_LINE6, valorMedioFaixaAlta);
+     //NumOut(0, LCD_LINE7, valorMedioFaixaBaixa);
+     //Off(OUT_BC);
+     //Wait(5000);
+     valorMaximoFaixaAlta = 30;
+     //seguirBordaEsquerda();
+     seguirLinhaMeio();
+     //rodar(100);
+     //Wait(300);
+     //rodar(-100);
+}
+
+
+
