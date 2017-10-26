@@ -2,17 +2,27 @@ import processing.serial.*;
 
 Serial myPort; 
 PImage img;
-int luz = 0, toque = 0, distancia = 0;
-int iniciarX = 680, iniciarY= 110, iniciarH = 140, iniciarW = 90;
-int pararX = 820, pararY= 110, pararH = 90, pararW = 90;
+//dados recebidos por bluetooth
+int luz = 0, toque = 0;
+int eixoX = 0, eixoY = 0;
+//gps
+//base: x = 307, y = 165 map1
+//base: x = 112, y = 288 map2
+//canto inf/esq: x = 84, y = 496;
+int xIni = 112, yIni = 288, x=0, y=0;
+//botoes
+int iniciarX = 640, iniciarY= 110, iniciarH = 140, iniciarW = 90;
+int pararX = 780, pararY= 110, pararH = 90, pararW = 90;
+//labels
+int  distancia = 0;
 String status = "Parado";
 void setup() {
-  size(1000, 600); // Creating the display window and defining its' size.
+  size(1000, 620); // Creating the display window and defining its' size.
   smooth();
-
-  img = loadImage("map.png");
+  x=xIni; y=yIni;
+  img = loadImage("map2.png");
   println(Serial.list());
-  String portName = Serial.list()[2]; 
+  String portName = Serial.list()[3]; 
   myPort = new Serial(this, portName, 9600); // Initializing the serial port.
 }
 
@@ -21,90 +31,54 @@ void draw() {
   textSize (20);
   
   fill (0, 0, 0);
-  text("Supervisão:", 265, 60); //titulo
-  image(img, 40, 100);
+  text("Supervisão:", 690, 80); //titulo
+  image(img, 50, 30);
 
   fill (30, 140, 40); //verde
   //rect ( x, y, largura, altura, arredondamento)
   rect(iniciarX, iniciarY, iniciarH+40, iniciarW, 20); //start
   fill(255);
-  text("INICIAR", 689, 160); 
+  text("INICIAR", 669, 160); 
   fill (160, 50, 20); //vermelho
   rect(pararX, pararY, pararH, pararW, 20); //stop
   fill(255);
-  text("PARAR", 835, 160);
+  text("PARAR", 795, 160);
 
   fill(0);
-  text("Status:               " + status, 670, 280);
-  text("Sensor de Luz:             " + luz, 670, 340);
-  text("Sensor de Carga:          " + toque, 670, 380);
-  text("Dist. percorrida (m):     " + distancia, 670, 420);
+  text("Status:               " + status, 630, 280);
+  text("Sensor de Luz:             " + luz, 630, 340);
+  text("Sensor de Carga:          " + toque, 630, 380);
+  distancia = eixoX+eixoY;
+  text("Dist. percorrida (cm):    " + distancia, 630, 420);
   //println(inByte);
   
   //gps
   fill (70, 230, 70); //verde
-  rect(307, 165, 20, 20, 50); //gps
-  //base: 307, 165
+  rect(x, y, 20, 20, 50); //gps  
   
   //Sensor communication
-
   while (myPort.available() > 0) {
     luz = myPort.read();
     println("Luz: "+luz);
     toque = myPort.read();
-    println("Toque: "+toque);    
+    println("Toque: "+toque);
+    eixoX = myPort.read();
+    x = eixoX*2 + xIni;
+    println("Eixo X: "+eixoX);
+    eixoY = myPort.read();
+    y = eixoY*2 + yIni;
+    println("Eixo Y: "+eixoY);
   }
 }
 
 //botoes iniciar e parar
 void mousePressed() {
     if(mouseX>iniciarX && mouseX <iniciarX+iniciarW && mouseY>iniciarY && mouseY <iniciarY+iniciarH){
-      println("kkkkk");
+      println("INICIAR!"); 
+      myPort.write('i'); 
     }
     if(mouseX>pararX && mouseX <pararX+pararW && mouseY>pararY && mouseY <pararY+pararH){
-      println("uuuuuu");
+      println("PARAR!"); 
+      myPort.write('p');
     }
 }
-//void keyPressed(){
-  
-//  switch (keyCode) { 
-//  case UP: 
-//    myPort.write('w'); 
-//    println("UP!"); 
-//    fill(255, 0, 0); 
-//    triangle(750, 235, 800, 160, 850, 235);
-
-//    break;
-//  case DOWN:
-//    myPort.write('s');
-//    println("DOWN!");
-//    fill(255, 0, 0);
-//    rect(750, 250, 100, 100, 7);
-
-//    break; 
-//  case LEFT:
-//    myPort.write('a');
-//    println("LEFT!");
-//    fill(255, 0, 0);
-//    triangle(735, 350, 660, 300, 735, 250);
-
-//    break;
-//  case RIGHT:
-//    myPort.write('d');
-//    println("RIGHT!");
-//    fill(255, 0, 0);
-//    triangle(865, 250, 940, 300, 865, 350);
-
-//    break;
-
-//  case ' ' :
-//    myPort.write ('z');
-//    println("STOP!");
-//    fill(255, 0, 0);
-//    rect(50, 250, 400, 100, 5);
-
-//    break;
-//  default:
-//    break;
-//  }
-//}

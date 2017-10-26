@@ -5,7 +5,7 @@ task main(){
 	nMotorEncoder(motorB) = 0;
 	nMotorEncoder(motorC) = 0;
 	while(nMotorEncoder(motorB) < (160*360)/17.3){
-	 motor[motorB] = 20;                  // Motor B is run at a 60 power level.
+	 motor[motorB] = 20;
 	 motor[motorC] = 20;
 	}
 	motor[motorB] =0;
