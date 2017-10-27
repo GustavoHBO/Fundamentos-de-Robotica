@@ -24,21 +24,24 @@
 |*		Port 1									touchSensor					Touch Sensor				Front mounted												*|
 |*		Port 3									lightSensor					Light Sensor				Front mounted												*|
 \*--------------------------------------------------------------------------------------------------------*/
-bool activate = false, eixoX = true;
+bool activate = false, eixoX = true, curve =false;
+int direction = 1;
 void checkBTLinkConnected(){
-	if (nBTCurrentStreamIndex >= 0)
-		return; // An existing Bluetooth connection is present.
-		setBluetoothRawDataMode();
-		while (!bBTRawMode){
-			// Wait for Bluecore to enter raw data mode
-			wait1Msec(50);
-		}
+  while(true){
+		if (nBTCurrentStreamIndex >= 0)
+			break; // An existing Bluetooth connection is present.
+  }
+	setBluetoothRawDataMode();
+	while (!bBTRawMode){
+		// Wait for Bluecore to enter raw data mode
+		wait1Msec(50);
+	}
 }
 
 task Sender(){
-	ubyte msg[4];
+	ubyte msg[5];
 	int x = 0, y = 0;
-
+  int dist =0;
 	while (true){
 		msg[0] = SensorValue(lightSensor);
 		msg[1] = SensorValue(touchSensor);
@@ -47,16 +50,20 @@ task Sender(){
 		  x=0;
 		  y=0;
 		}
-		if(eixoX){
-		  x = ((nMotorEncoder(motorB)+nMotorEncoder(motorC))/2)/20.8092485549 -y;//resultado em cm
-	  }else{
-		  y = ((nMotorEncoder(motorB)+nMotorEncoder(motorC))/2)/20.8092485549 -x;//resultado em cm
+		if(!curve){
+			dist=((nMotorEncoder(motorB)+nMotorEncoder(motorC))/2)/20.809248554;
+			if(eixoX){
+			  x = dist -y;//resultado em cm
+		  }else{
+			  y = dist -x;//resultado em cm
+		  }
+			msg[2] = x;
+			msg[3] = y;
+			msg[4] = direction;
+			//envia
+			nxtWriteRawBluetooth(msg, 4);
 	  }
-		msg[2] = x;
-		msg[3] = y;
-		//envia
-		nxtWriteRawBluetooth(msg, 4);
-		wait1Msec(2);//delay necessario pra nao embaralhar os pacotes
+		wait1Msec(100);//delay necessario pra nao embaralhar os pacotes
 	}
 	return;
 }
@@ -75,6 +82,8 @@ task Receiver(){
 		  activate =true;
 		}else if (nNumbBytesRead == 1 && BytesRead[0] == 'p'){//sinal de parar
 		  nxtDisplayString(4, "Idle");
+		  motor[motorB] = 0;
+		  motor[motorC] = 0;
 		  activate =false;
 		}
   }
@@ -84,7 +93,7 @@ task main(){
   checkBTLinkConnected();//inicia a conexao
   wait1Msec(50);// The program waits 50 milliseconds to initialize the light sensor.
   int i=0;
-  int rote[3]= {-1,1,1};
+  int rote[17]= {1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,1,1,1};
   bool fromLeft =false;
 
   StartTask(Sender);//ativa o envio de dados
@@ -92,6 +101,10 @@ task main(){
   while(true){if(activate){  //so executa se receber o sinal mudando activate pra true
     //sensor lendo preto
     if(SensorValue(lightSensor) < 45){//mantem direo reta
+      motor[motorB] = speed;
+      motor[motorC] = speed;
+    //sensor lendo prata
+    }else if(SensorValue(lightSensor) >= 64){//mantem direo reta
       motor[motorB] = speed;
       motor[motorC] = speed;
     //sensor lendo branco
@@ -120,19 +133,28 @@ task main(){
 		    wait1Msec(500);
 		    //se apos outro intervalo de tempo continuar no branco, chegamos em uma curva
 		    if(SensorValue(lightSensor) >= 45 && SensorValue(lightSensor) < 64){
+		      curve=true;
 		      //curva, rotaciona ate achar preto ou prata
 		      while(SensorValue(lightSensor) >= 45 && SensorValue(lightSensor)< 64){
 		        //o sentido da rotacao eh dado pelo vetor rote
-		        motor[motorB] = rote[i]*speed;//curva
-		        motor[motorC] = (-1)*rote[i]*speed;
+		        motor[motorB] = (-1)*rote[i]*speed;//curva
+		        motor[motorC] = rote[i]*speed;
 		      }
 		      i++;
-		      if(i==1||i==3||i==4||i==6||i==8)//sabemos o eixo pela proxima curva (definidos com base no mapa)
+		      if(i==1||i==3||i==4||i==6||i==8||i==10||i==11||i==13||i==15)//sabemos o eixo pela proxima curva (definidos com base no mapa)
 		        //se a proxima curva for a 1, 3.. estamos andando no eixo Y
 		        eixoX=false;
 		      else
 		        //se nao estamos andando no eixo X
 		        eixoX=true;
+
+		      if(i==1||i==4||i==9||i==10||i==12||i==13||i==15||i==16)//sabemos o eixo pela proxima curva (definidos com base no mapa)
+		        //se a proxima curva for a 1, 3.. estamos andando no eixo Y
+		        direction=-1;
+		      else if (direction==-1)
+		        //se nao estamos andando no eixo X
+		        direction=1;
+		      curve=false;
 		      if(i==17){//ultima curva
 		        //zerar variaveis
 		        i=0;
