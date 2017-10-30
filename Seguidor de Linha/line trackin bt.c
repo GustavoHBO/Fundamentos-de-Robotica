@@ -24,8 +24,7 @@
 |*		Port 1									touchSensor					Touch Sensor				Front mounted												*|
 |*		Port 3									lightSensor					Light Sensor				Front mounted												*|
 \*--------------------------------------------------------------------------------------------------------*/
-bool activate = false, eixoX = true, curve =false;
-int direction = 1;
+bool activate = false, eixoX = true, curve =false, direction=true;
 void checkBTLinkConnected(){
   while(true){
 		if (nBTCurrentStreamIndex >= 0)
@@ -40,7 +39,7 @@ void checkBTLinkConnected(){
 
 task Sender(){
 	ubyte msg[5];
-	int x = 0, y = 0;
+	int x = 0, y = 0, xneg=0, yneg=0;
   int dist =0;
 	while (true){
 		msg[0] = SensorValue(lightSensor);
@@ -52,18 +51,22 @@ task Sender(){
 		}
 		if(!curve){
 			dist=((nMotorEncoder(motorB)+nMotorEncoder(motorC))/2)/20.809248554;
-			if(eixoX){
-			  x = dist -y;//resultado em cm
-		  }else{
-			  y = dist -x;//resultado em cm
+			if(eixoX && direction){//+x
+			  x = dist -xneg -y -yneg;//resultado em cm
+		  }else if(eixoX && !direction){//-x
+			  xneg = dist -x -y -yneg;//resultado em cm
+		  }else if(!eixoX && direction){//+y
+		    y = dist -yneg -x -xneg;//resultado em cm
+		  }else {//-y
+		    yneg = dist -y -x -xneg;//resultado em cm
 		  }
-			msg[2] = x;
-			msg[3] = y;
-			msg[4] = direction;
+			msg[2] = x-xneg;
+			msg[3] = y-yneg;
+			msg[4] = dist;
 			//envia
-			nxtWriteRawBluetooth(msg, 4);
+			nxtWriteRawBluetooth(msg, 5);
 	  }
-		wait1Msec(100);//delay necessario pra nao embaralhar os pacotes
+		wait1Msec(80);//delay necessario pra nao embaralhar os pacotes
 	}
 	return;
 }
@@ -93,7 +96,8 @@ task main(){
   checkBTLinkConnected();//inicia a conexao
   wait1Msec(50);// The program waits 50 milliseconds to initialize the light sensor.
   int i=0;
-  int rote[17]= {1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,1,1,1};
+  int rote[17]= {1,-1,-1,1,-1,-1,-1,-1,1,1,-1,-1,-1,-1,1,1,1};
+  //int rote[17]= {1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,1,1,1};
   bool fromLeft =false;
 
   StartTask(Sender);//ativa o envio de dados
@@ -141,19 +145,20 @@ task main(){
 		        motor[motorC] = rote[i]*speed;
 		      }
 		      i++;
-		      if(i==1||i==3||i==4||i==6||i==8||i==10||i==11||i==13||i==15)//sabemos o eixo pela proxima curva (definidos com base no mapa)
+		      //if(i==1||i==3||i==4||i==6||i==8||i==10||i==11||i==13||i==15)//sabemos o eixo pela proxima curva (definidos com base no mapa)
 		        //se a proxima curva for a 1, 3.. estamos andando no eixo Y
+		      if(i==1||i==3||i==5||i==7||i==9)  //teste
 		        eixoX=false;
 		      else
 		        //se nao estamos andando no eixo X
 		        eixoX=true;
 
-		      if(i==1||i==4||i==9||i==10||i==12||i==13||i==15||i==16)//sabemos o eixo pela proxima curva (definidos com base no mapa)
-		        //se a proxima curva for a 1, 3.. estamos andando no eixo Y
-		        direction=-1;
-		      else if (direction==-1)
+		      if(i==3||i==5||i==6||i==10)//sabemos o eixo pela proxima curva (definidos com base no mapa)
+		        //se a proxima curva for a 1, 4, 9.. estamos andando no sentido negativo
+		        direction=false;
+		      else
 		        //se nao estamos andando no eixo X
-		        direction=1;
+		        direction=true;
 		      curve=false;
 		      if(i==17){//ultima curva
 		        //zerar variaveis
@@ -166,19 +171,4 @@ task main(){
       }
     }
   }}
-  //========================================================
-  // codigo pra checar a odometria, faz andar em linha reta por 1,60m
-  //wait1Msec(50);// The program waits 50 milliseconds to initialize the light sensor.
-  // wait1Msec(1000);
-  // motor[motorB] =0;
-  // motor[motorC] =0;
-	// nMotorEncoder(motorB) = 0;
-	// nMotorEncoder(motorC) = 0;
-	// while(nMotorEncoder(motorB) < (160*360)/17.3){
-	 // motor[motorB] = 20;
-	 // motor[motorC] = 20;
-	// }
-	// motor[motorB] =0;
-  // motor[motorC] =0;
-  //============================================================
 }

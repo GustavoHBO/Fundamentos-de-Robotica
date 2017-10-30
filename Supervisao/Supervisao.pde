@@ -5,17 +5,17 @@ PImage img;
 //dados recebidos por bluetooth
 int luz = 0, toque = 0;
 int eixoX = 0, eixoY = 0;
-boolean decremento =false, incremento=true;
+boolean decremento =false, incremento=true, reset =true;
 //gps
 //base: x = 307, y = 165 map1
 //base: x = 112, y = 288 map2
 //canto inf/esq: x = 84, y = 496;
-int xIni = 112, yIni = 288, x=0, y=0, xAnt = 0, yAnt = 0, xDecrement = 0, yDecrement = 0,sentido =1;
+int xIni = 112, yIni = 288, x=0, y=0, xDecrement = 0, yDecrement = 0;
 //botoes
 int iniciarX = 640, iniciarY= 110, iniciarH = 140, iniciarW = 90;
 int pararX = 780, pararY= 110, pararH = 90, pararW = 90;
 //labels
-int  distancia = 0;
+int  distancia = 0, dist = 0, distAnt =0;
 String status = "Parado";
 void setup() {
   size(1000, 620); // Creating the display window and defining its' size.
@@ -23,7 +23,7 @@ void setup() {
   x=xIni; y=yIni;
   img = loadImage("map2.png");
   println(Serial.list());
-  String portName = Serial.list()[2]; 
+  String portName = Serial.list()[3]; 
   myPort = new Serial(this, portName, 9600); // Initializing the serial port.
 }
 
@@ -49,7 +49,6 @@ void draw() {
   text("Status:               " + status, 630, 280);
   text("Sensor de Luz:             " + luz, 630, 340);
   text("Sensor de Carga:          " + toque, 630, 380);
-  distancia = eixoX+eixoY;
   text("Dist. percorrida (cm):    " + distancia, 630, 420);
   //println(inByte);
   
@@ -67,22 +66,19 @@ void draw() {
     println("Eixo X: "+eixoX);
     eixoY = myPort.read();    
     println("Eixo Y: "+eixoY);
-    sentido = myPort.read();
-    println("Sentido: "+sentido);
-    //recalculo do gps
-    if(sentido == -1 && !decremento){
-      decremento =true;
-      incremento =false;
-      xAnt = x;
-      yAnt = y;
-    }else if (!incremento){
-      decremento =false;
-      incremento = true;
-      xDecrement = xDecrement + x - xAnt;
-      yDecrement = yDecrement + y - yAnt;
+    dist = myPort.read();    
+    println("Distancia: "+dist);
+    if(dist>=0 && dist<10 && distancia>0 && reset){
+      distAnt = distancia + dist;
+      xIni = x + eixoX*2;
+      yIni = y + eixoY*2;
+      reset =false;
     }
-    x = eixoX*2 - xDecrement + xIni;
-    y = eixoY*2 - yDecrement + yIni;
+    if(dist>=10)
+      reset =true;
+    distancia = dist + distAnt;
+    x = eixoX*2 + xIni;
+    y = eixoY*2 + yIni;
   }
 }
 
