@@ -5,12 +5,11 @@ PImage img;
 //dados recebidos por bluetooth
 int luz = 0, toque = 0;
 int eixoX = 0, eixoY = 0;
-boolean decremento =false, incremento=true, reset =true;
+boolean decremento =false, incremento=true, reset =false;
 //gps
-//base: x = 307, y = 165 map1
-//base: x = 112, y = 288 map2
-//canto inf/esq: x = 84, y = 496;
-int xIni = 112, yIni = 288, x=0, y=0, xDecrement = 0, yDecrement = 0;
+//base: x = 110, y = 310 map2
+//canto inf/esq: x = 81, y = 541;
+int xIni = 110, yIni = 310, x=0, y=0, xDecrement = 0, yDecrement = 0;
 //botoes
 int iniciarX = 640, iniciarY= 110, iniciarH = 140, iniciarW = 90;
 int pararX = 780, pararY= 110, pararH = 90, pararW = 90;
@@ -59,16 +58,23 @@ void draw() {
   //Sensor communication
   while (myPort.available() > 0) {
     luz = myPort.read();
-    println("Luz: "+luz);
+    //println("Luz: "+luz);
     toque = myPort.read();
-    println("Toque: "+toque);
-    eixoX = myPort.read();    
+    //println("Toque: "+toque);
+    eixoX = myPort.read(); 
+    if(eixoX>110)
+      eixoX = eixoX-255;       
     println("Eixo X: "+eixoX);
-    eixoY = myPort.read();    
+    println("EixoAnt X: "+xIni);
+    eixoY = myPort.read();  
+    if(eixoY>100)
+      eixoY = eixoY-255;
     println("Eixo Y: "+eixoY);
+    println("EixoAnt Y: "+yIni);
     dist = myPort.read();    
-    println("Distancia: "+dist);
-    if(dist>=0 && dist<10 && distancia>0 && reset){
+    println("-------------------- Distancia: "+dist);
+    
+    if(dist>=0 && dist<10 && distancia>=10 && reset){
       distAnt = distancia + dist;
       xIni = x + eixoX*2;
       yIni = y + eixoY*2;
@@ -76,7 +82,7 @@ void draw() {
     }
     if(dist>=10)
       reset =true;
-    distancia = dist + distAnt;
+    distancia = dist + distAnt;    
     x = eixoX*2 + xIni;
     y = eixoY*2 + yIni;
   }

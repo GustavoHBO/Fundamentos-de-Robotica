@@ -42,15 +42,12 @@ task Sender(){
 	int x = 0, y = 0, xneg=0, yneg=0;
   int dist =0;
 	while (true){
+	  dist=((nMotorEncoder(motorB)+nMotorEncoder(motorC))/2)/22;//20.809248554;
+
 		msg[0] = SensorValue(lightSensor);
 		msg[1] = SensorValue(touchSensor);
-		//se os motores forem resetados, os valores x e y devem ser tb
-		if(nMotorEncoder(motorB)==0 && nMotorEncoder(motorC)==0){
-		  x=0;
-		  y=0;
-		}
+
 		if(!curve){
-			dist=((nMotorEncoder(motorB)+nMotorEncoder(motorC))/2)/20.809248554;
 			if(eixoX && direction){//+x
 			  x = dist -xneg -y -yneg;//resultado em cm
 		  }else if(eixoX && !direction){//-x
@@ -65,6 +62,15 @@ task Sender(){
 			msg[4] = dist;
 			//envia
 			nxtWriteRawBluetooth(msg, 5);
+	  }
+	  //reset
+	  if(dist>100){
+	    nMotorEncoder(motorB) = 0;
+	    nMotorEncoder(motorC) = 0;
+	    x = 0;
+	    xneg = 0;
+	    y = 0;
+	    yneg = 0;
 	  }
 		wait1Msec(80);//delay necessario pra nao embaralhar os pacotes
 	}
@@ -81,10 +87,10 @@ task Receiver(){
 		if (nNumbBytesRead == 0){//se nao tem nada, da um tempinho
 			wait1Msec(10);
 		}else if (nNumbBytesRead == 1 && BytesRead[0] == 'i'){//sinal de iniciar
-		  nxtDisplayString(4, "Working");
+		  nxtDisplayCenteredBigTextLine(3, "Working");
 		  activate =true;
 		}else if (nNumbBytesRead == 1 && BytesRead[0] == 'p'){//sinal de parar
-		  nxtDisplayString(4, "Idle");
+		  nxtDisplayCenteredBigTextLine(3, "Idle");
 		  motor[motorB] = 0;
 		  motor[motorC] = 0;
 		  activate =false;
@@ -96,7 +102,7 @@ task main(){
   checkBTLinkConnected();//inicia a conexao
   wait1Msec(50);// The program waits 50 milliseconds to initialize the light sensor.
   int i=0;
-  int rote[17]= {1,-1,-1,1,-1,-1,-1,-1,1,1,-1,-1,-1,-1,1,1,1};
+  int rote[17]= {1,1,-1,-1,-1,-1,-1,1,1,1,-1,-1,-1,-1,1,1,1};
   //int rote[17]= {1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,1,1,1};
   bool fromLeft =false;
 
@@ -104,13 +110,13 @@ task main(){
   StartTask(Receiver);//ativa a recepcao de dados
   while(true){if(activate){  //so executa se receber o sinal mudando activate pra true
     //sensor lendo preto
-    if(SensorValue(lightSensor) < 45){//mantem direo reta
+    if(SensorValue(lightSensor) < 45 || SensorValue(lightSensor) >= 64){//mantem direo reta
       motor[motorB] = speed;
       motor[motorC] = speed;
     //sensor lendo prata
-    }else if(SensorValue(lightSensor) >= 64){//mantem direo reta
-      motor[motorB] = speed;
-      motor[motorC] = speed;
+    // }else if(SensorValue(lightSensor) >= 64){//mantem direo reta
+      // motor[motorB] = speed;
+      // motor[motorC] = speed;
     //sensor lendo branco
     }else if (SensorValue(lightSensor) >= 45 && SensorValue(lightSensor) < 64){//branco
       if(fromLeft){//se veio da esquerda tenta a 1 correcao pra direita
@@ -153,7 +159,7 @@ task main(){
 		        //se nao estamos andando no eixo X
 		        eixoX=true;
 
-		      if(i==3||i==5||i==6||i==10)//sabemos o eixo pela proxima curva (definidos com base no mapa)
+		      if(i==2||i==5||i==6||i==8)//sabemos o eixo pela proxima curva (definidos com base no mapa)
 		        //se a proxima curva for a 1, 4, 9.. estamos andando no sentido negativo
 		        direction=false;
 		      else
@@ -172,3 +178,5 @@ task main(){
     }
   }}
 }
+//17 = 360 x = 360/17
+//1 = x
