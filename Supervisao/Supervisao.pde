@@ -9,7 +9,7 @@ boolean decremento =false, incremento=true, reset =false;
 //gps
 //base: x = 110, y = 310 map2
 //canto inf/esq: x = 81, y = 541;
-int xIni = 110, yIni = 310, x=0, y=0, xDecrement = 0, yDecrement = 0;
+int xIni = 86, yIni = 310, x=0, y=0, xDecrement = 0, yDecrement = 0;
 //botoes
 int iniciarX = 640, iniciarY= 110, iniciarH = 140, iniciarW = 90;
 int pararX = 780, pararY= 110, pararH = 90, pararW = 90;
@@ -22,7 +22,7 @@ void setup() {
   x=xIni; y=yIni;
   img = loadImage("map2.png");
   println(Serial.list());
-  String portName = Serial.list()[3]; 
+  String portName = Serial.list()[1]; 
   myPort = new Serial(this, portName, 9600); // Initializing the serial port.
 }
 

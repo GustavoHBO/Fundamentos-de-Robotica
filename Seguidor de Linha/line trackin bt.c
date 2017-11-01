@@ -39,15 +39,16 @@ void checkBTLinkConnected(){
 
 task Sender(){
 	ubyte msg[5];
+	bool restoreCurve =false;
 	int x = 0, y = 0, xneg=0, yneg=0;
   int dist =0;
 	while (true){
-	  dist=((nMotorEncoder(motorB)+nMotorEncoder(motorC))/2)/22;//20.809248554;
+	  dist=((nMotorEncoder(motorB)+nMotorEncoder(motorC))/2)/21.3;//20.809248554;
 
 		msg[0] = SensorValue(lightSensor);
 		msg[1] = SensorValue(touchSensor);
 
-		if(!curve){
+		if(!curve && !restoreCurve){
 			if(eixoX && direction){//+x
 			  x = dist -xneg -y -yneg;//resultado em cm
 		  }else if(eixoX && !direction){//-x
@@ -62,6 +63,17 @@ task Sender(){
 			msg[4] = dist;
 			//envia
 			nxtWriteRawBluetooth(msg, 5);
+	  }else{
+	    restoreCurve = true;
+	  }
+	  if (restoreCurve && !curve){
+	    nMotorEncoder(motorB) = 0;
+	    nMotorEncoder(motorC) = 0;
+	    x = 0;
+	    xneg = 0;
+	    y = 0;
+	    yneg = 0;
+	    restoreCurve  = false;
 	  }
 	  //reset
 	  if(dist>100){
@@ -110,7 +122,7 @@ task main(){
   StartTask(Receiver);//ativa a recepcao de dados
   while(true){if(activate){  //so executa se receber o sinal mudando activate pra true
     //sensor lendo preto
-    if(SensorValue(lightSensor) < 45 || SensorValue(lightSensor) >= 64){//mantem direo reta
+    if(SensorValue(lightSensor) < 45){//mantem direo reta
       motor[motorB] = speed;
       motor[motorC] = speed;
     //sensor lendo prata
