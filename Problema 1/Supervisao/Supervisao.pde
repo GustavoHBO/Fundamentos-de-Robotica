@@ -22,7 +22,7 @@ void setup() {
   x=xIni; y=yIni;
   img = loadImage("map2.png");
   println(Serial.list());
-  String portName = Serial.list()[1]; 
+  String portName = Serial.list()[3]; 
   myPort = new Serial(this, portName, 9600); // Initializing the serial port.
 }
 

@@ -24,7 +24,10 @@
 |*		Port 1									touchSensor					Touch Sensor				Front mounted												*|
 |*		Port 3									lightSensor					Light Sensor				Front mounted												*|
 \*--------------------------------------------------------------------------------------------------------*/
+
 bool activate = false, eixoX = true, curve =false, direction=true;
+
+//funcao pra conectar com a supervisao, que deve ja estar executando
 void checkBTLinkConnected(){
   while(true){
 		if (nBTCurrentStreamIndex >= 0)
@@ -37,6 +40,7 @@ void checkBTLinkConnected(){
 	}
 }
 
+//funcao que envia os dados para a supervisao
 task Sender(){
 	ubyte msg[5];
 	bool restoreCurve =false;
@@ -89,6 +93,7 @@ task Sender(){
 	return;
 }
 
+//funcao que recebe os comandos da supervisao
 task Receiver(){
   int nNumbBytesRead;
 	ubyte BytesRead[1];
@@ -111,25 +116,87 @@ task Receiver(){
 }
 
 task main(){
-  checkBTLinkConnected();//inicia a conexao
-  wait1Msec(50);// The program waits 50 milliseconds to initialize the light sensor.
   int i=0;
-  int rote[17]= {1,1,-1,-1,-1,-1,-1,1,1,1,-1,-1,-1,-1,1,1,1};
-  //int rote[17]= {1,-1,-1,-1,-1,-1,1,-1,-1,-1,-1,-1,-1,-1,1,1,1};
+  //int rote[17]= {1,1,-1,-1,-1,-1,-1,1,1,1,-1,-1,-1,-1,1,1,1};
+  int rote[11]= {1,-1,-1,1,-1,-1,-1,-1,1,1,1};
   bool fromLeft =false;
 
+  checkBTLinkConnected();//inicia a conexao
+  wait1Msec(50);// The program waits 50 milliseconds to initialize the light sensor.
   StartTask(Sender);//ativa o envio de dados
   StartTask(Receiver);//ativa a recepcao de dados
+
   while(true){if(activate){  //so executa se receber o sinal mudando activate pra true
     //sensor lendo preto
-    if(SensorValue(lightSensor) < 45){//mantem direo reta
+    if(SensorValue(lightSensor) < 45){//mantem direcao reta
       motor[motorB] = speed;
       motor[motorC] = speed;
     //sensor lendo prata
-    // }else if(SensorValue(lightSensor) >= 64){//mantem direo reta
+    // }else if(SensorValue(lightSensor) >= 64){//mantem direcao reta
       // motor[motorB] = speed;
       // motor[motorC] = speed;
     //sensor lendo branco
+    }else if(SensorValue(lightSensor) >= 64){//prata
+      motor[motorB] = speed;
+	    motor[motorC] = speed;
+	    wait1Msec(300);
+  		motor[motorB] = speed;
+	    motor[motorC] = -speed;
+	    wait1Msec(550);
+
+      while(true){
+      	if (SensorValue(lightSensor) >= 64){
+		      motor[motorB] = speed;
+		      motor[motorC] = speed;
+	      }else if (SensorValue(lightSensor) >= 45 && SensorValue(lightSensor) < 64){//branco
+		      if(fromLeft){//se veio da esquerda tenta a 1 correcao pra direita
+		        motor[motorB] = speed-20;//direita
+		        motor[motorC] = speed;
+		        fromLeft =false;
+		      }else{//se veio da direita tenta a 1 correcao pra esquerda
+		        motor[motorB] = speed;//esquerda
+		        motor[motorC] = speed-20;
+		        fromLeft =true;
+		      }
+		      wait1Msec(200);
+		      //se apos um tempo, continuar no branco
+		      if(SensorValue(lightSensor) >= 45 && SensorValue(lightSensor)< 64){//continua no branco
+		        if(fromLeft){//tenta pro lado oposto ao da 1 tentativa
+		          motor[motorB] = speed-20;//vira para a direita
+		          motor[motorC] = speed;
+		          fromLeft =true;
+		        }else{
+		          motor[motorB] = speed;//vira para a esquerda
+		          motor[motorC] = speed-20;
+		          fromLeft =false;
+		        }
+		        wait1Msec(500);
+		        if(SensorValue(lightSensor) >= 45 && SensorValue(lightSensor) < 64){
+				      //curva, rotaciona ate achar preto ou prata
+				      while(SensorValue(lightSensor) >= 45 && SensorValue(lightSensor)< 64){
+				        //o sentido da rotacao eh dado pelo vetor rote
+				        motor[motorB] = speed;//curva
+				        motor[motorC] = -speed;
+				      }
+				      if(SensorValue(lightSensor) < 45){
+				      	break;
+				      }
+				      if(SensorValue(touchSensor)){
+					      while(SensorValue(touchSensor)){
+					      	motor[motorB] = 0;
+			      			motor[motorC] = 0;
+				        }
+				      }else{
+				        while(!SensorValue(touchSensor)){
+					      	motor[motorB] = 0;
+			      			motor[motorC] = 0;
+				        }
+				      }
+
+				    }
+		      }
+		    }
+	    }
     }else if (SensorValue(lightSensor) >= 45 && SensorValue(lightSensor) < 64){//branco
       if(fromLeft){//se veio da esquerda tenta a 1 correcao pra direita
 	      motor[motorB] = speed-20;//direita
@@ -190,5 +257,9 @@ task main(){
     }
   }}
 }
-//17 = 360 x = 360/17
-//1 = x
+//calculo da odometria
+//cm = ciclos
+//17.3 = 360  | x = 360/17.3
+//1 = x       | x =  20.809248554
+
+//21.3 (compensar a perda com corrcoes de direcao)
