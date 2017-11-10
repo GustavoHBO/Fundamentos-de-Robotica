@@ -13,9 +13,10 @@ int xIni = 86, yIni = 310, x=0, y=0, xDecrement = 0, yDecrement = 0;
 //botoes
 int iniciarX = 640, iniciarY= 110, iniciarH = 140, iniciarW = 90;
 int pararX = 780, pararY= 110, pararH = 90, pararW = 90;
+int resetX = 705, resetY= 210, resetH = 100, resetW = 40;
 //labels
 int  distancia = 0, dist = 0, distAnt =0;
-String status = "Parado";
+
 void setup() {
   size(1000, 620); // Creating the display window and defining its' size.
   smooth();
@@ -43,9 +44,12 @@ void draw() {
   rect(pararX, pararY, pararH, pararW, 20); //stop
   fill(255);
   text("PARAR", 795, 160);
+  fill (255, 205, 0); //amarelo
+  rect(resetX, resetY, resetH, resetW, 12); //reset
+  fill(0);
+  text("RESET", 728, 238);
 
   fill(0);
-  text("Status:               " + status, 630, 280);
   text("Sensor de Luz:             " + luz, 630, 340);
   text("Sensor de Carga:          " + toque, 630, 380);
   text("Dist. percorrida (cm):    " + distancia, 630, 420);
@@ -97,5 +101,17 @@ void mousePressed() {
     if(mouseX>pararX && mouseX <pararX+pararH && mouseY>pararY && mouseY <pararY+pararW){
       println("PARAR!"); 
       myPort.write('p');
+    }
+    if(mouseX>resetX && mouseX <resetX+resetH && mouseY>resetY && mouseY <resetY+resetW){
+      println("RESET!");       
+      myPort.write('r');
+      decremento =false; incremento=true; reset =false;
+      xIni = 86; yIni = 310; x=0; y=0; xDecrement = 0; yDecrement = 0;
+      //botoes
+      iniciarX = 640; iniciarY= 110; iniciarH = 140; iniciarW = 90;
+      pararX = 780; pararY= 110; pararH = 90; pararW = 90;
+      resetX = 705; resetY= 210; resetH = 100; resetW = 40;
+      //labels
+      distancia = 0; dist = 0; distAnt =0;
     }
 }

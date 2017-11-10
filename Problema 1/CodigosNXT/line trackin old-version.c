@@ -25,13 +25,8 @@
 |*		Port 3									lightSensor					Light Sensor				Front mounted												*|
 \*--------------------------------------------------------------------------------------------------------*/
 
-bool activate = false, fromLeft =false, eixoX = true, curve =false, direction=true, reset=false;
-int i=0;
+bool activate = false, eixoX = true, curve =false, direction=true;
 
-void forcarCurva();
-void correcao();
-void resetar();
-void silverRote();
 //funcao pra conectar com a supervisao, que deve ja estar executando
 void checkBTLinkConnected(){
   while(true){
@@ -75,7 +70,7 @@ task Sender(){
 	  }else{
 	    restoreCurve = true;
 	  }
-	  if ((restoreCurve && !curve)||reset){
+	  if (restoreCurve && !curve){
 	    nMotorEncoder(motorB) = 0;
 	    nMotorEncoder(motorC) = 0;
 	    x = 0;
@@ -83,7 +78,6 @@ task Sender(){
 	    y = 0;
 	    yneg = 0;
 	    restoreCurve  = false;
-	    reset =false;
 	  }
 	  //reset
 	  if(dist>100){
@@ -117,19 +111,15 @@ task Receiver(){
 		  motor[motorB] = 0;
 		  motor[motorC] = 0;
 		  activate =false;
-		}else if (nNumbBytesRead == 1 && BytesRead[0] == 'r'){//sinal de reset
-		  resetar();
 		}
   }
 }
 
 task main(){
-
+  int i=0;
   //int rote[17]= {1,1,-1,-1,-1,-1,-1,1,1,1,-1,-1,-1,-1,1,1,1};
-  //                      { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10};
-  int rote[11]=           { 1,-1,-1, 1,-1,-1,-1,-1, 1, 1, 1};//1 =right, -1 left  /curva (sem o prata)
-  int rotaEixos[11] =     { 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0};//0 = x, 1 = y       /eixo (sem o prata)
-  int rotaDirection[11] = { 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1};//0 = +, 1 = -       /increment (sem o prata)
+  int rote[11]= {1,-1,-1,1,-1,-1,-1,-1,1,1,1};
+  bool fromLeft =false;
 
   checkBTLinkConnected();//inicia a conexao
   wait1Msec(50);// The program waits 50 milliseconds to initialize the light sensor.
@@ -147,13 +137,88 @@ task main(){
       // motor[motorC] = speed;
     //sensor lendo branco
     }else if(SensorValue(lightSensor) >= 64){//prata
-      silverRote();
+      motor[motorB] = speed;
+	    motor[motorC] = speed;
+	    wait1Msec(300);
+  		motor[motorB] = speed;
+	    motor[motorC] = -speed;
+	    wait1Msec(550);
+
+      while(true){
+      	if (SensorValue(lightSensor) >= 64){
+		      motor[motorB] = speed;
+		      motor[motorC] = speed;
+	      }else if (SensorValue(lightSensor) >= 45 && SensorValue(lightSensor) < 64){//branco
+		      if(fromLeft){//se veio da esquerda tenta a 1 correcao pra direita
+		        motor[motorB] = speed-20;//direita
+		        motor[motorC] = speed;
+		        fromLeft =false;
+		      }else{//se veio da direita tenta a 1 correcao pra esquerda
+		        motor[motorB] = speed;//esquerda
+		        motor[motorC] = speed-20;
+		        fromLeft =true;
+		      }
+		      wait1Msec(200);
+		      //se apos um tempo, continuar no branco
+		      if(SensorValue(lightSensor) >= 45 && SensorValue(lightSensor)< 64){//continua no branco
+		        if(fromLeft){//tenta pro lado oposto ao da 1 tentativa
+		          motor[motorB] = speed-20;//vira para a direita
+		          motor[motorC] = speed;
+		          fromLeft =true;
+		        }else{
+		          motor[motorB] = speed;//vira para a esquerda
+		          motor[motorC] = speed-20;
+		          fromLeft =false;
+		        }
+		        wait1Msec(500);
+		        if(SensorValue(lightSensor) >= 45 && SensorValue(lightSensor) < 64){
+				      //curva, rotaciona ate achar preto ou prata
+				      while(SensorValue(lightSensor) >= 45 && SensorValue(lightSensor)< 64){
+				        //o sentido da rotacao eh dado pelo vetor rote
+				        motor[motorB] = speed;//curva
+				        motor[motorC] = -speed;
+				      }
+				      if(SensorValue(lightSensor) < 45){
+				      	break;
+				      }
+				      if(SensorValue(touchSensor)){
+					      while(SensorValue(touchSensor)){
+					      	motor[motorB] = 0;
+			      			motor[motorC] = 0;
+				        }
+				      }else{
+				        while(!SensorValue(touchSensor)){
+					      	motor[motorB] = 0;
+			      			motor[motorC] = 0;
+				        }
+				      }
+
+				    }
+		      }
+		    }
+	    }
     }else if (SensorValue(lightSensor) >= 45 && SensorValue(lightSensor) < 64){//branco
-      correcao();
+      if(fromLeft){//se veio da esquerda tenta a 1 correcao pra direita
+	      motor[motorB] = speed-20;//direita
+	      motor[motorC] = speed;
+	      fromLeft =false;
+	    }else{//se veio da direita tenta a 1 correcao pra esquerda
+	      motor[motorB] = speed;//esquerda
+	      motor[motorC] = speed-20;
+	      fromLeft =true;
+	    }
       wait1Msec(200);
       //se apos um tempo, continuar no branco
       if(SensorValue(lightSensor) >= 45 && SensorValue(lightSensor)< 64){//continua no branco
-        correcao();
+        if(fromLeft){//tenta pro lado oposto ao da 1 tentativa
+		      motor[motorB] = speed-20;//vira para a direita
+		      motor[motorC] = speed;
+		      fromLeft =true;
+		    }else{
+		      motor[motorB] = speed;//vira para a esquerda
+		      motor[motorC] = speed-20;
+		      fromLeft =false;
+		    }
 		    wait1Msec(500);
 		    //se apos outro intervalo de tempo continuar no branco, chegamos em uma curva
 		    if(SensorValue(lightSensor) >= 45 && SensorValue(lightSensor) < 64){
@@ -165,30 +230,28 @@ task main(){
 		        motor[motorC] = rote[i]*speed;
 		      }
 		      i++;
-		      if(i==sizeof(rote)){//fim do ciclo
-		        resetar();
-		      }else{
+		      //if(i==1||i==3||i==4||i==6||i==8||i==10||i==11||i==13||i==15)//sabemos o eixo pela proxima curva (definidos com base no mapa)
 		        //se a proxima curva for a 1, 3.. estamos andando no eixo Y
-			      if(rotaEixos[i])  //teste
-			        eixoX=false;
-			      else
-			        //se nao estamos andando no eixo X
-			        eixoX=true;
+		      if(i==1||i==3||i==5||i==7||i==9)  //teste
+		        eixoX=false;
+		      else
+		        //se nao estamos andando no eixo X
+		        eixoX=true;
 
-			      if(rotaDirection[i])//sabemos o eixo pela proxima curva (definidos com base no mapa)
-			        direction=false;
-			      else
-			        direction=true;
-
-			      curve=false;
-			      if(i==17){//ultima curva
-			        //zerar variaveis
-			        i=0;
-			        nMotorEncoder(motorB) = 0;
-		          nMotorEncoder(motorC) = 0;
-		          activate = false;
-			      }
-			    }
+		      if(i==2||i==5||i==6||i==8)//sabemos o eixo pela proxima curva (definidos com base no mapa)
+		        //se a proxima curva for a 1, 4, 9.. estamos andando no sentido negativo
+		        direction=false;
+		      else
+		        //se nao estamos andando no eixo X
+		        direction=true;
+		      curve=false;
+		      if(i==17){//ultima curva
+		        //zerar variaveis
+		        i=0;
+		        nMotorEncoder(motorB) = 0;
+	          nMotorEncoder(motorC) = 0;
+	          activate = false;
+		      }
 		    }
       }
     }
@@ -200,79 +263,3 @@ task main(){
 //1 = x       | x =  20.809248554
 
 //21.3 (compensar a perda com corrcoes de direcao)
-void correcao(){
-  if(fromLeft){//se veio da esquerda tenta a 1 correcao pra direita
-    motor[motorB] = speed-20;//direita
-    motor[motorC] = speed;
-    fromLeft =false;
-  }else{//se veio da direita tenta a 1 correcao pra esquerda
-    motor[motorB] = speed;//esquerda
-    motor[motorC] = speed-20;
-    fromLeft =true;
-  }
-}
-void forcarCurva(){
-  motor[motorB] = speed;
-  motor[motorC] = speed;
-  wait1Msec(300);
-	motor[motorB] = speed;
-  motor[motorC] = -speed;
-  wait1Msec(550);
-}
-void resetar(){
-  nxtDisplayCenteredBigTextLine(3, "Idle");
-  motor[motorB] = 0;
-  motor[motorC] = 0;
-  activate =false;
-  activate = false;
-  eixoX = true;
-  curve =false;
-  direction=true;
-  i=0;
-  reset =true;
-}
-
-void silverRote(){
-	forcarCurva();
-  eixoX = false;
-  direction = (!SensorValue(touchSensor))?false:true;
-  while(true){
-  	if (SensorValue(lightSensor) >= 64){
-      motor[motorB] = speed;
-      motor[motorC] = speed;
-    }else if (SensorValue(lightSensor) >= 45 && SensorValue(lightSensor) < 64){//branco
-      correcao();
-      wait1Msec(200);
-      //se apos um tempo, continuar no branco
-      if(SensorValue(lightSensor) >= 45 && SensorValue(lightSensor)< 64){//continua no branco
-        correcao();
-        wait1Msec(500);
-        if(SensorValue(lightSensor) >= 45 && SensorValue(lightSensor) < 64){
-		      //curva, rotaciona ate achar preto ou prata
-		      while(SensorValue(lightSensor) >= 45 && SensorValue(lightSensor)< 64){
-		        //o sentido da rotacao eh dado pelo vetor rote
-		        motor[motorB] = speed;//curva
-		        motor[motorC] = -speed;
-		      }
-		      if(SensorValue(lightSensor) < 45){
-		        direction = (!SensorValue(touchSensor))?true:false;
-		        eixoX = true;
-		      	break;
-		      }
-		      if(SensorValue(touchSensor)){
-			      while(SensorValue(touchSensor)){
-			      	motor[motorB] = 0;
-	      			motor[motorC] = 0;
-		        }
-		      }else{
-		        while(!SensorValue(touchSensor)){
-			      	motor[motorB] = 0;
-	      			motor[motorC] = 0;
-		        }
-		      }
-		      direction = (!SensorValue(touchSensor))?true:false;
-		    }
-      }
-    }
-  }
-}
