@@ -16,6 +16,7 @@ int pararX = 780, pararY= 110, pararH = 90, pararW = 90;
 int resetX = 705, resetY= 210, resetH = 100, resetW = 40;
 //labels
 int  distancia = 0, dist = 0, distAnt =0;
+String carga ="";
 
 void setup() {
   size(1000, 620); // Creating the display window and defining its' size.
@@ -51,7 +52,10 @@ void draw() {
 
   fill(0);
   text("Sensor de Luz:             " + luz, 630, 340);
-  text("Sensor de Carga:          " + toque, 630, 380);
+  carga = "não";
+  if(toque==1)
+    carga = "sim";
+  text("Carregado:                  " + carga, 630, 380);
   text("Dist. percorrida (cm):    " + distancia, 630, 420);
   //println(inByte);
   
@@ -89,6 +93,16 @@ void draw() {
     distancia = dist + distAnt;    
     x = eixoX*2 + xIni;
     y = eixoY*2 + yIni;
+    if(dist==120){
+      decremento =false; incremento=true; reset =false;
+      xIni = 86; yIni = 310; x=0; y=0; xDecrement = 0; yDecrement = 0;
+      //botoes
+      iniciarX = 640; iniciarY= 110; iniciarH = 140; iniciarW = 90;
+      pararX = 780; pararY= 110; pararH = 90; pararW = 90;
+      resetX = 705; resetY= 210; resetH = 100; resetW = 40;
+      //labels
+      distancia = 0; dist = 0; distAnt =0;
+    }
   }
 }
 

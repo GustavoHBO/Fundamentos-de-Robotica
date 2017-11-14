@@ -27,7 +27,7 @@
 |*		Port 3									lightSensor					Light Sensor				Front mounted												*|
 \*--------------------------------------------------------------------------------------------------------*/
 
-bool activate = false, fromLeft =false, eixoX = true, curve =false, direction=true;
+bool activate = false, fromLeft =false, eixoX = true, curve =false, direction=true, rest =false;
 bool restoreCurve =false;
 int i=0;
 int x = 0, y = 0, xneg=0, yneg=0, dist =0;
@@ -73,6 +73,8 @@ task Sender(){
 		  }
 			msg[2] = x-xneg;
 			msg[3] = y-yneg;
+			if (rest)
+			  dist=120;
 			msg[4] = dist;
 			//envia
 			nxtWriteRawBluetooth(msg, 5);
@@ -114,6 +116,7 @@ task Receiver(){
 			wait1Msec(10);
 		}else if (nNumbBytesRead == 1 && BytesRead[0] == 'i'){//sinal de iniciar
 		  nxtDisplayCenteredBigTextLine(3, "Working");
+		  rest = false;
 		  activate =true;
 		}else if (nNumbBytesRead == 1 && BytesRead[0] == 'p'){//sinal de parar
 		  nxtDisplayCenteredBigTextLine(3, "Idle");
@@ -206,6 +209,7 @@ task main(){
         direction=true;
 		}else if(i==11){
 		  resetar();
+		  rest=true;
 		}
   }}
 }
