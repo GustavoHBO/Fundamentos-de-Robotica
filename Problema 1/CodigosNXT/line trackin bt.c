@@ -251,9 +251,11 @@ void forcarCurva(int s){
   motor[motorB] = speed;
   motor[motorC] = speed;
   wait1Msec(400);
+  curve = true;
 	motor[motorB] = s*speed;
   motor[motorC] = (-1)*s*speed;
   wait1Msec(510);
+  curve = false;
 }
 void resetar(){
 	activate = false;
