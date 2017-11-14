@@ -14,7 +14,7 @@
 |*																																																				*|
 |*																				ROBOT CONFIGURATION																							*|
 |*		NOTES:																																															*|
-|*		1)	The Light Sensor is attached to the front of the robot.																					 *|
+|*		1)	The Light Sensor is attached to the front of the robot.																			 		*|
 |*		2)	Be sure to take readings of your Light Sensor over the light and dark areas.	Once you have			*|
 |*				the values, add them and divide by 2 to find your threshold.	Then, use your threshold as a			*|
 |*				comparison in your program.																																			*|
@@ -29,7 +29,7 @@
 
 bool activate = false, fromLeft =false, eixoX = true, curve =false, direction=true;
 int i=0;
-int x = 0, y = 0, xneg=0, yneg=0;
+int x = 0, y = 0, xneg=0, yneg=0, dist =0;
 
 void forcarCurva(int s);
 void correcao();
@@ -52,7 +52,6 @@ void checkBTLinkConnected(){
 task Sender(){
 	ubyte msg[5];
 	bool restoreCurve =false;
-  int dist =0;
 	while (true){
 	  dist=((nMotorEncoder(motorB)+nMotorEncoder(motorC))/2)/21.3;//20.809248554;
 
@@ -126,7 +125,6 @@ task Receiver(){
 
 task main(){
 
-  //int rote[17]= {1,1,-1,-1,-1,-1,-1,1,1,1,-1,-1,-1,-1,1,1,1};
   //                      { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10};
   int rote[11]=           { 1,-1,-1, 1,-1,-1,-1,-1, 1, 1, 1};//1 =right, -1 left  /curva (sem o prata)
   int rotaEixos[11] =     { 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0};//0 = x, 1 = y       /eixo (sem o prata)
@@ -147,7 +145,7 @@ task main(){
       // motor[motorB] = speed;
       // motor[motorC] = speed;
     //sensor lendo branco
-    }else if(SensorValue(lightSensor) >= prata){//prata
+    }else if((i==2/*&&dist>44*/ || i=6/*&&dist>90*/) && SensorValue(lightSensor) >= prata){//prata
       silverRote();
     }else if (SensorValue(lightSensor) >= branco && SensorValue(lightSensor) < prata){//branco
       correcao();
@@ -166,9 +164,7 @@ task main(){
 		        motor[motorC] = rote[i]*speed;
 		      }
 		      i++;
-		      if(i==sizeof(rote)){//fim do ciclo
-		        resetar();
-		      }else{
+		      if(i!=sizeof(rote)){//fim do ciclo
 		        //se a proxima curva for a 1, 3.. estamos andando no eixo Y
 			      if(rotaEixos[i])  //teste
 			        eixoX=false;
@@ -180,39 +176,28 @@ task main(){
 			        direction=false;
 			      else
 			        direction=true;
-
-			      curve=false;
-			      if(i==9){// curva da base
-			        int motorstate = nMotorEncoder(motorB);
-			        while ((nMotorEncoder(motorB)-motorstate)/21.3<41){
-
-			        }
-			        curve =true;
-			        forcarCurva(-1);
-			        while(SensorValue(lightSensor) >= branco && SensorValue(lightSensor)< prata){
-				        //o sentido da rotacao eh dado pelo vetor rote
-				        motor[motorB] = (-1)*rote[i]*speed;//curva
-				        motor[motorC] = rote[i]*speed;
-				      }
-			        i++;
-			        //se a proxima curva for a 1, 3.. estamos andando no eixo Y
-				      if(rotaEixos[i])  //teste
-				        eixoX=false;
-				      else
-				        //se nao estamos andando no eixo X
-				        eixoX=true;
-
-				      if(rotaDirection[i])//sabemos o eixo pela proxima curva (definidos com base no mapa)
-				        direction=false;
-				      else
-				        direction=true;
-
-				      curve=false;
-			      }
+		      }else{
+		      	resetar();
 			    }
+			    curve=false;
 		    }
       }
-    }
+    }else if (i==9 && dist > 41){//curva pra voltar a base aos 41cm depois da curva 8
+    	curve = true;
+    	forcarCurva(1);  
+    	i++;  	
+
+    	if(rotaEixos[i])  
+        eixoX=false;
+      else//se nao estamos andando no eixo X        
+        eixoX=true;
+
+      curve=false;
+      if(rotaDirection[i])//sabemos o eixo pela proxima curva (definidos com base no mapa)
+        direction=false;
+      else
+        direction=true;      
+		}
   }}
 }
 //calculo da odometria
@@ -232,6 +217,25 @@ void correcao(){
     fromLeft =true;
   }
 }
+void correcaoBruta(){
+	int w = 1;
+	if(fromLeft){
+		w = -1;
+		fromLeft = false;
+	}else{
+		fromLeft = true;
+	}
+	int esp =0;
+	while(esp < 10){
+	  motor[motorB] = (-1)*w*speed;//direita
+	  motor[motorC] = w*speed;
+	  if (SensorValue(lightSensor)< prata){
+	  	break;
+	  }
+	  wait1Msec(25);
+	  esp++;
+	}
+}
 void forcarCurva(int s){
   motor[motorB] = speed;
   motor[motorC] = speed;
@@ -241,10 +245,10 @@ void forcarCurva(int s){
   wait1Msec(510);
 }
 void resetar(){
+	activate = false;
   nxtDisplayCenteredBigTextLine(3, "Idle");
   motor[motorB] = 0;
   motor[motorC] = 0;
-  activate = false;
   eixoX = true;
   curve =false;
   direction=true;
@@ -255,6 +259,7 @@ void resetar(){
   xneg = 0;
   y = 0;
   yneg = 0;
+  dist = 0;
 }
 
 void silverRote(){
@@ -267,12 +272,13 @@ void silverRote(){
       motor[motorC] = speed;
     }else if (SensorValue(lightSensor) >= branco && SensorValue(lightSensor) < prata){//branco
       correcao();
-      wait1Msec(200);
+      wait1Msec(150);
       //se apos um tempo, continuar no branco
       if(SensorValue(lightSensor) >= branco && SensorValue(lightSensor)< prata){//continua no branco
         correcao();
-        wait1Msec(500);
-        if(SensorValue(lightSensor) >= branco && SensorValue(lightSensor) < prata){
+        wait1Msec(400);
+        correcaoBruta();
+        if(SensorValue(lightSensor) >= branco && SensorValue(lightSensor) < prata){//curva
 		      //curva, rotaciona ate achar preto ou prata
 		      while(SensorValue(lightSensor) >= branco && SensorValue(lightSensor)< prata){
 		        //o sentido da rotacao eh dado pelo vetor rote
