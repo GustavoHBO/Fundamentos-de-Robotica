@@ -9,10 +9,12 @@ using System.Collections;
 
 public class MovimentoBraco : MonoBehaviour {
 
-	int turnSpeed = 50;// Velocidade do giro
+	int turnSpeed = 5;// Velocidade do giro
 	float xRotation = 0;
 	float yRotation = 0;
 	float zRotation = 0;
+
+	
 
 	// Use this for initialization
 	void Start () {
@@ -26,27 +28,36 @@ public class MovimentoBraco : MonoBehaviour {
 
 	void girarBraco(){
 
+		//var pivot = Transform = transform.Find("pivo");
+		//this.transform.RotateAround(transform.Find("robotic_arm_rotate").position, Vector3.up, -20); 
+
 		/* Aqui abaixo é controlado o giro entorno da base */
 		if(Input.GetKey(KeyCode.RightArrow)){// Verifica se a seta para a direita está pressionada.
-			transform.Rotate(new Vector3(0, turnSpeed, 0) * Time.deltaTime);// O vetor é o eixo no qual será feito o giro
+			//transform.Rotate(new Vector3(0, turnSpeed, 0) * Time.deltaTime);// O vetor é o eixo no qual será feito o giro
             																	// o TIme.deltaTime é a velocidade vezes o tempo(esse tempo é para ser constante em todos os computadores).
+			this.transform.RotateAround(transform.Find("robotic_arm_rotate").position, Vector3.up, turnSpeed);
 		} else if(Input.GetKey(KeyCode.LeftArrow)){// Verifica se a seta para a esquerda está pressionada.
-
-            transform.Rotate(new Vector3(0, -turnSpeed, 0) * Time.deltaTime);// O vetor é o eixo no qual será feito o giro
+            //transform.Rotate(new Vector3(0, -turnSpeed, 0) * Time.deltaTime);// O vetor é o eixo no qual será feito o giro
             																	// o segundo é a velocidade vezes o tempo(esse tempo é para ser constante em todos os computadores).
+			this.transform.RotateAround(transform.Find("robotic_arm_rotate").position, Vector3.up, -turnSpeed);
 		}
 
 		/* Aqui abaixo é controlado o giro entorno do pivot */
 		if(Input.GetKey(KeyCode.UpArrow)){// Verifica se a seta para cima está pressionada.
-			yRotation += Input.GetAxis("Horizontal");
-        	transform.eulerAngles = new Vector3(0, 0, yRotation);
+			//yRotation += Input.GetAxis("Horizontal");
+        	//transform.eulerAngles = new Vector3(0, 0, yRotation);
+        	this.transform.RotateAround(transform.Find("robotic_arm_rotate").position, Vector3.forward, turnSpeed);
 		} else if(Input.GetKey(KeyCode.DownArrow)){// Verifica se a seta para baixo está pressionada.
-			transform.Rotate(new Vector3(0, 0, turnSpeed) * Time.deltaTime);// O vetor é o eixo no qual será feito o giro
+			//transform.Rotate(new Vector3(0, 0, turnSpeed) * Time.deltaTime);// O vetor é o eixo no qual será feito o giro
             																	// o segundo é a velocidade vezes o tempo(esse tempo é para ser constante em todos os computadores).
+			this.transform.RotateAround(transform.Find("robotic_arm_rotate").position, Vector3.forward, -turnSpeed);
 		}
 
 		if(Input.GetKey("a")){
-			transform.Rotate(new Vector3(0, 0, 1), turnSpeed * Time.deltaTime);// O vetor é o eixo no qual será feito o giro
+			
+			this.transform.RotateAround(transform.Find("robotic_arm_rotate").position, Vector3.forward, -20); 
+
+			//transform.Rotate(new Vector3(0, 0, 1), turnSpeed * Time.deltaTime);// O vetor é o eixo no qual será feito o giro
 			//yRotation += Input.GetAxis("Horizontal");
         	//transform.eulerAngles = new Vector3(0, 0, yRotation);
 		}
