@@ -18,11 +18,11 @@ public class MovimentoAntebraco : MonoBehaviour {
 	void girarAntebraco(){
 		
 		/* Aqui abaixo é controlado o giro entorno da base */
-		if(Input.GetKey(KeyCode.RightArrow)){// Verifica se a seta para a direita está pressionada.
-            transform.Rotate(new Vector3(0, 1, 0), turnSpeed * Time.deltaTime);// O primeiro parametro é o eixo no qual será feito o giro
+		if(Input.GetKey("w")){// Verifica se a seta para a direita está pressionada.
+            transform.Rotate(new Vector3(0, 0, 1), -turnSpeed * Time.deltaTime);// O primeiro parametro é o eixo no qual será feito o giro
             																	// o segundo é a velocidade vezes o tempo(esse tempo é para ser constante em todos os computadores).
-		} else if(Input.GetKey(KeyCode.LeftArrow)){// Verifica se a seta para a esquerda está pressionada.
-            transform.Rotate(new Vector3(0, 1, 0), -turnSpeed * Time.deltaTime);// O primeiro parametro é o eixo no qual será feito o giro
+		} else if(Input.GetKey("s")){// Verifica se a seta para a esquerda está pressionada.
+            transform.Rotate(new Vector3(0, 0, 1), turnSpeed * Time.deltaTime);// O primeiro parametro é o eixo no qual será feito o giro
             																	// o segundo é a velocidade vezes o tempo(esse tempo é para ser constante em todos os computadores).
 		}
 	}

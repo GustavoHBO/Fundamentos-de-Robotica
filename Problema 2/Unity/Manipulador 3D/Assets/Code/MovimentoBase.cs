@@ -23,11 +23,11 @@ public class MovimentoBase : MonoBehaviour {
 
 		/* Aqui abaixo é controlado o giro entorno do pivot */
 		if(Input.GetKey(KeyCode.RightArrow)){// Verifica se a seta para a direita está pressionada.
-            transform.Rotate(new Vector3(0, turnSpeed, 0) * Time.deltaTime);// O primeiro parametro é o eixo no qual será feito o giro
+            transform.Rotate(new Vector3(0, -turnSpeed, 0) * Time.deltaTime);// O primeiro parametro é o eixo no qual será feito o giro
             																	// o segundo é a velocidade vezes o tempo(esse tempo é para ser constante em todos os computadores).
         /* Aqui abaixo é controlado o giro entorno do pivot */
 		} else if(Input.GetKey(KeyCode.LeftArrow)){// Verifica se a seta para a esquerda está pressionada.
-            transform.Rotate(new Vector3(0, -turnSpeed, 0) * Time.deltaTime);// O primeiro parametro é o eixo no qual será feito o giro
+            transform.Rotate(new Vector3(0, turnSpeed, 0) * Time.deltaTime);// O primeiro parametro é o eixo no qual será feito o giro
             																	// o segundo é a velocidade vezes o tempo(esse tempo é para ser constante em todos os computadores).
 		}
 	}
