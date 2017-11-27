@@ -135,6 +135,30 @@ ModelImporter:
     4300042: robotic_arm Ramiona_dolne Rami__DR1
     4300044: robotic_arm Wa__ramion_DG
     4300046: robotic_arm Baza_chwytaka
+    6400000: robotic_arm Baza_chwytaka
+    6400002: robotic_arm Podstawa_nieruchoma_MeshPart0
+    6400004: robotic_arm Podstawa_nieruchoma_MeshPart1
+    6400006: robotic_arm Podstawa_nieruchoma_MeshPart2
+    6400008: robotic_arm Podstawa_nieruchoma_MeshPart3
+    6400010: robotic_arm Podstawa_ruchoma_MeshPart0
+    6400012: robotic_arm Podstawa_ruchoma_MeshPart1
+    6400014: robotic_arm Podstawa_ruchoma_MeshPart2
+    6400016: robotic_arm Podstawa_ruchoma_MeshPart3
+    6400018: robotic_arm Podstawa_ruchoma_MeshPart4
+    6400020: robotic_arm Podstawa_ruchoma_MeshPart5
+    6400022: robotic_arm Podstawa_ruchoma_MeshPart6
+    6400024: robotic_arm Podstawa_ruchoma_MeshPart7
+    6400026: robotic_arm Podstawa_ruchoma_MeshPart8
+    6400028: robotic_arm Podstawa_ruchoma_MeshPart9
+    6400030: robotic_arm Rami__chwytaka_L
+    6400032: robotic_arm Rami__chwytaka_R
+    6400034: robotic_arm Ramiona_dolne Rami__DL1
+    6400036: robotic_arm Ramiona_dolne Rami__DR1
+    6400038: robotic_arm Ramiona_G_rne Rami__DL
+    6400040: robotic_arm Ramiona_G_rne Rami__DR
+    6400042: robotic_arm Sze_cian_1
+    6400044: robotic_arm Wa__ramion_DG
+    6400046: robotic_arm Wa__ramion_G
   materials:
     importMaterials: 1
     materialName: 0
@@ -160,7 +184,7 @@ ModelImporter:
     lODScreenPercentages: []
     globalScale: 1
     meshCompression: 0
-    addColliders: 0
+    addColliders: 1
     importBlendShapes: 1
     swapUVChannels: 0
     generateSecondaryUV: 0
