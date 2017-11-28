@@ -7,7 +7,8 @@ using System.Collections;
 
 public class MovimentoBase : MonoBehaviour {
 
-	int turnSpeed = 50; // Velocidade do giro entorno do eixo
+	int turnSpeed = 50; // Velocidade do giro entorno do eixo.
+	int turnTime = 0; // Quantidade de giros efetuados, para controle do limite físico.
 
 	// Use this for initialization
 	void Start () {
@@ -18,17 +19,19 @@ public class MovimentoBase : MonoBehaviour {
 	void Update () {
 		girarBase();// Responsável por controlar o giro da base robótica.
 	}
-
+ 
 	void girarBase(){
 
 		/* Aqui abaixo é controlado o giro entorno do pivot */
-		if(Input.GetKey(KeyCode.RightArrow)){// Verifica se a seta para a direita está pressionada.
+		if(Input.GetKey(KeyCode.RightArrow) && turnTime < 50){// Verifica se a seta para a direita está pressionada.
             transform.Rotate(new Vector3(0, turnSpeed, 0) * Time.deltaTime);// O primeiro parametro é o eixo no qual será feito o giro
             																	// o segundo é a velocidade vezes o tempo(esse tempo é para ser constante em todos os computadores).
+        	turnTime++;
         /* Aqui abaixo é controlado o giro entorno do pivot */
-		} else if(Input.GetKey(KeyCode.LeftArrow)){// Verifica se a seta para a esquerda está pressionada.
+		} else if(Input.GetKey(KeyCode.LeftArrow)  && turnTime > -50){// Verifica se a seta para a esquerda está pressionada.
             transform.Rotate(new Vector3(0, -turnSpeed, 0) * Time.deltaTime);// O primeiro parametro é o eixo no qual será feito o giro
             																	// o segundo é a velocidade vezes o tempo(esse tempo é para ser constante em todos os computadores).
+			turnTime--;
 		}
 	}
 }
