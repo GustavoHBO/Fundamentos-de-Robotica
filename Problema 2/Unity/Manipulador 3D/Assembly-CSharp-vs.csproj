@@ -46,9 +46,13 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Code\ComunicacaoSerial.cs" />
      <Compile Include="Assets\Code\MovimentoAntebraco.cs" />
      <Compile Include="Assets\Code\MovimentoBase.cs" />
      <Compile Include="Assets\Code\MovimentoBraco.cs" />
+     <Compile Include="Assets\Code\MovimentoFechaGarra.cs" />
+     <Compile Include="Assets\Code\MovimentoFechaGarraL.cs" />
+     <Compile Include="Assets\Code\MovimentoGarra.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>/opt/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>
