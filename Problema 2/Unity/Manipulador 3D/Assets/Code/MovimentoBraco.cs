@@ -25,10 +25,10 @@ public class MovimentoBraco : MonoBehaviour {
 
 		/* Aqui abaixo é controlado o giro entorno do pivot */
 		if(Input.GetKey(KeyCode.UpArrow)){// Verifica se a seta para cima está pressionada.
-			transform.Rotate(new Vector3(0, 0, turnSpeed) * Time.deltaTime);// O vetor é o eixo no qual será feito o giro
+			transform.Rotate(new Vector3(0, 0, -turnSpeed) * Time.deltaTime);// O vetor é o eixo no qual será feito o giro
             																	// o Time.deltaTime é a velocidade vezes o tempo(esse tempo é para ser constante em todos os computadores).
 		} else if(Input.GetKey(KeyCode.DownArrow)){// Verifica se a seta para baixo está pressionada.
-			transform.Rotate(new Vector3(0, 0, -turnSpeed) * Time.deltaTime);// O vetor é o eixo no qual será feito o giro
+			transform.Rotate(new Vector3(0, 0, turnSpeed) * Time.deltaTime);// O vetor é o eixo no qual será feito o giro
             																	// o segundo é a velocidade vezes o tempo(esse tempo é para ser constante em todos os computadores).
 		}
 	}
