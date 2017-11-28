@@ -1,0 +1,13 @@
+﻿<Properties StartupItem="Manipulador 3D.csproj">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Code\ComunicacaoSerial.cs">
+    <Files>
+      <File FileName="Assets\Code\MovimentoBase.cs" Line="10" Column="1" />
+      <File FileName="Assets\Code\ComunicacaoSerial.cs" Line="10" Column="20" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
